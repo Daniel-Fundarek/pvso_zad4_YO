@@ -21,7 +21,7 @@ def print_hi(name):
 if __name__ == '__main__':
     print_hi('PyCharm')
 
-    pcd = o3d.io.read_point_cloud("pvso/pointcloud/internet_pcd.ply",format='ply')
+    pcd = o3d.io.read_point_cloud("pvso/pointcloud/output_big1.ply", format='ply')
     # pcd = o3d.io.read_point_cloud("pvso/pointcloud/output_big6.ply", format='ply')
 
     # Convert PCD point cloud to PLY format in memory
@@ -48,25 +48,33 @@ if __name__ == '__main__':
     pcd = inlier_cloud
     points = np.asarray(pcd.points)
 
-    # Normalisation:
-    scaled_points = StandardScaler().fit_transform(points)
-
-    # Clustering:
-    model = DBSCAN(eps=0.15, min_samples=10)
-    # model = KMeans(n_clusters=4)
-    model.fit(scaled_points)
-
-    # Get labels:
-    labels = model.labels_
-    # Get the number of colors:
-    n_clusters = len(set(labels))
-
-    # Mapping the labels classes to a color map:
-    colors = plt.get_cmap("tab20")(labels / (n_clusters if n_clusters > 0 else 1))
-    # Attribute to noise the black color:
+    labels = np.array(pcd.cluster_dbscan(eps=0.05, min_points=10))
+    max_label = labels.max()
+    colors = plt.get_cmap("tab20")(labels / (max_label
+                                             if max_label > 0 else 1))
     colors[labels < 0] = 0
-    # Update points colors:
     pcd.colors = o3d.utility.Vector3dVector(colors[:, :3])
-
-    # Display:
     o3d.visualization.draw_geometries([pcd])
+
+    # # Normalisation:
+    # scaled_points = StandardScaler().fit_transform(points)
+    #
+    # # Clustering:
+    # model = DBSCAN(eps=0.05, min_samples=10)
+    # # model = KMeans(n_clusters=4)
+    # model.fit(scaled_points)
+    #
+    # # Get labels:
+    # labels = model.labels_
+    # # Get the number of colors:
+    # n_clusters = len(set(labels))
+    #
+    # # Mapping the labels classes to a color map:
+    # colors = plt.get_cmap("tab20")(labels / (n_clusters if n_clusters > 0 else 1))
+    # # Attribute to noise the black color:
+    # colors[labels < 0] = 0
+    # # Update points colors:
+    # pcd.colors = o3d.utility.Vector3dVector(colors[:, :3])
+    #
+    # # Display:
+    # o3d.visualization.draw_geometries([pcd])
